@@ -82,42 +82,11 @@ const map_: Functor1<URI>["map"] = <A, B>(
   };
 };
 
-const ap_: Apply1<URI>["ap"] = <A, B>(
-  fab: UseQueryResult<(a: A) => B>,
-  fa: UseQueryResult<A>
-): UseQueryResult<B> => {
-  const refetch = <TPageData>(
-    options?: RefetchOptions & RefetchQueryFilters<TPageData>
-  ) =>
-    Promise.all([fab.refetch(options), fa.refetch(options)]).then(
-      ([fabr, far]) => ap_(fabr, far)
-    );
-  if (fab.isSuccess || fab.isRefetchError) {
-    const fb = map_(fa, fab.data);
-    if (fb.isSuccess)
-      return {
-        ...fab,
-        data: fb.data,
-        refetch,
-      };
-    return {
-      ...fb,
-      refetch,
-    };
-  }
-  return {
-    ...fab,
-    refetch,
-  };
-};
-
-const chain_: Monad1<URI>["chain"] = <A, B>(
+const pseudoChain = <A, B>(
   fa: UseQueryResult<A>,
-  fab: (a: A) => UseQueryResult<B>
+  fab: (a: A) => UseQueryResult<B>,
+  refetch: UseQueryResult<B>["refetch"]
 ): UseQueryResult<B> => {
-  const refetch = <TPageData>(
-    options?: RefetchOptions & RefetchQueryFilters<TPageData>
-  ) => fa.refetch(options).then((x) => chain_(x, fab));
   if (fa.isSuccess || fa.isRefetchError) {
     const fb = fab(fa.data);
     if (fb.isSuccess)
@@ -135,6 +104,29 @@ const chain_: Monad1<URI>["chain"] = <A, B>(
     ...fa,
     refetch,
   };
+};
+
+const ap_: Apply1<URI>["ap"] = <A, B>(
+  fab: UseQueryResult<(a: A) => B>,
+  fa: UseQueryResult<A>
+): UseQueryResult<B> => {
+  const refetch = <TPageData>(
+    options?: RefetchOptions & RefetchQueryFilters<TPageData>
+  ) =>
+    Promise.all([fab.refetch(options), fa.refetch(options)]).then(
+      ([fabr, far]) => ap_(fabr, far)
+    );
+  return pseudoChain(fab, (f: (a: A) => B) => map_(fa, f), refetch);
+};
+
+const chain_: Monad1<URI>["chain"] = <A, B>(
+  fa: UseQueryResult<A>,
+  fab: (a: A) => UseQueryResult<B>
+): UseQueryResult<B> => {
+  const refetch = <TPageData>(
+    options?: RefetchOptions & RefetchQueryFilters<TPageData>
+  ) => fa.refetch(options).then((x) => chain_(x, fab));
+  return pseudoChain(fa, fab, refetch);
 };
 
 export const URI = "fp-ts-react-query/UseQueryResult";
