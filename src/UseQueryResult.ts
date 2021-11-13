@@ -6,6 +6,8 @@ import {
 import * as O from "fp-ts/lib/Option";
 import { Functor1 } from "fp-ts/lib/Functor";
 import { Apply1 } from "fp-ts/lib/Apply";
+import { Applicative1 } from "fp-ts/lib/Applicative";
+import { Monad1 } from "fp-ts/lib/Monad";
 
 export const of = <A>(a: A): UseQueryResult<A> => ({
   status: "success",
@@ -31,7 +33,7 @@ export const of = <A>(a: A): UseQueryResult<A> => ({
   remove: () => null,
 });
 
-const e = <T>(): UseQueryResult<T> => ({
+export const idle = <T>(): UseQueryResult<T> => ({
   status: "idle",
   isLoading: false,
   isSuccess: false,
@@ -51,12 +53,12 @@ const e = <T>(): UseQueryResult<T> => ({
   isPreviousData: false,
   isRefetchError: false,
   isStale: false,
-  refetch: () => Promise.resolve(e()),
+  refetch: () => Promise.resolve(idle()),
   remove: () => null,
 });
 
 export const fromOption = <A>(o: O.Option<A>): UseQueryResult<A> =>
-  O.isNone(o) ? e() : of(o.value);
+  O.isNone(o) ? idle() : of(o.value);
 
 // -------------------- instances --------------------
 
@@ -91,20 +93,46 @@ const ap_: Apply1<URI>["ap"] = <A, B>(
       ([fabr, far]) => ap_(fabr, far)
     );
   if (fab.isSuccess || fab.isRefetchError) {
-    const mapped = map_(fa, fab.data);
-    if (mapped.isSuccess)
+    const fb = map_(fa, fab.data);
+    if (fb.isSuccess)
       return {
         ...fab,
-        data: mapped.data,
+        data: fb.data,
         refetch,
       };
     return {
-      ...map_(fa, fab.data),
+      ...fb,
       refetch,
     };
   }
   return {
     ...fab,
+    refetch,
+  };
+};
+
+const chain_: Monad1<URI>["chain"] = <A, B>(
+  fa: UseQueryResult<A>,
+  fab: (a: A) => UseQueryResult<B>
+): UseQueryResult<B> => {
+  const refetch = <TPageData>(
+    options?: RefetchOptions & RefetchQueryFilters<TPageData>
+  ) => fa.refetch(options).then((x) => chain_(x, fab));
+  if (fa.isSuccess || fa.isRefetchError) {
+    const fb = fab(fa.data);
+    if (fb.isSuccess)
+      return {
+        ...fa,
+        data: fb.data,
+        refetch,
+      };
+    return {
+      ...fb,
+      refetch,
+    };
+  }
+  return {
+    ...fa,
     refetch,
   };
 };
@@ -126,4 +154,14 @@ export const Functor: Functor1<URI> = {
 export const Apply: Apply1<URI> = {
   ...Functor,
   ap: ap_,
+};
+
+export const Applicative: Applicative1<URI> = {
+  ...Apply,
+  of,
+};
+
+export const Monad: Monad1<URI> = {
+  ...Applicative,
+  chain: chain_,
 };
