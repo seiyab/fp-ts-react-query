@@ -2,6 +2,7 @@ import { UseQueryResult } from "react-query";
 
 import * as UQR from "./UseQueryResult";
 import { omit } from "./testing.test";
+import { pipe } from "fp-ts/lib/function";
 
 describe("UseQueryResult", () => {
   const omitFunc = <A>(a: UseQueryResult<A>) => omit(a, ["refetch", "remove"]);
@@ -72,6 +73,19 @@ describe("UseQueryResult", () => {
       },
     ])("%#", ({ fab, fa, fb }) => {
       expect(omitFunc(UQR.Monad.chain(fa, fab))).toEqual(omitFunc(fb));
+    });
+  });
+
+  describe("Do", () => {
+    it("monkey", () => {
+      const result = pipe(
+        UQR.Do,
+        UQR.bind("a", () => UQR.of(1)),
+        UQR.bind("b", () => UQR.of(2)),
+        UQR.map(({ a, b }) => a + b)
+      );
+
+      expect(omitFunc(result)).toEqual(omitFunc(UQR.of(3)));
     });
   });
 });
