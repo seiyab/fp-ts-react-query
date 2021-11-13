@@ -10,4 +10,10 @@ describe("UseQueryResult", () => {
       omitFunc(UQR.of(20))
     );
   });
+
+  describe("Apply", () => {
+    const fab = UQR.of((x: number) => x + 1);
+    const fa = UQR.of(3);
+    expect(omitFunc(UQR.Apply.ap(fab, fa))).toEqual(omitFunc(UQR.of(4)));
+  });
 });
