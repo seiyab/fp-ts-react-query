@@ -81,7 +81,7 @@ describe("UseQueryResult", () => {
   });
 
   describe("Do", () => {
-    it("monkey", () => {
+    it("bind two successful results", () => {
       const result = pipe(
         UQR.Do,
         UQR.bind("a", () => UQR.of(1)),
@@ -90,6 +90,28 @@ describe("UseQueryResult", () => {
       );
 
       expect(result).toEq(UQR.of(3), Eq);
+    });
+
+    it("bind success and loading", () => {
+      const result = pipe(
+        UQR.Do,
+        UQR.bind("a", () => UQR.of(1)),
+        UQR.bind("b", () => UQR.loading<number>()),
+        UQR.map(({ a, b }) => a + b)
+      );
+
+      expect(result).toEq(UQR.loading<number>(), Eq);
+    });
+
+    it("bind success and refetchError", () => {
+      const result = pipe(
+        UQR.Do,
+        UQR.bind("a", () => UQR.of(1)),
+        UQR.bind("b", () => UQR.refetchError(10)),
+        UQR.map(({ a, b }) => a + b)
+      );
+
+      expect(result).toEq(UQR.refetchError(11), Eq);
     });
   });
 });
