@@ -4,6 +4,7 @@
 Helps following
 - Apply function to return of useQuery iff data exists
 - Compose multiple query results
+- Deal success result as idle / loading / error according to data
 
 ## Examples
 ### apply function iff data exists
@@ -78,6 +79,32 @@ const Component: React.FC = () => {
   // ...
 };
 ```
+
+### Deal success result as idle / loading / error according to data
+```ts
+import * as UQR from 'fp-ts-react-query/UseQueryResult';
+
+const f = (a: number): UseQueryResult<number> => {
+  if (a < 0) return UQR.error();
+  if (a === 0) return UQR.idle();
+  return UQR.success(a * 5)
+}
+
+const Component: React.FC = () => {
+  const x = useQuery('query1', () => someQuery1());
+  const calculated = UQR.chain(f)(x);
+  // ...
+};
+```
+
+x | calculated
+:- | :-
+success(10) | success(50)
+success(0) | idle
+success(-3) | error
+idle | idle
+loading | loading
+error | error
 
 ## Implemented instances
 - `Monad`
