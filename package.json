@@ -4,7 +4,8 @@
   "description": "fp-ts bindings for react-query",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "rm -r ./lib && tsc"
   },
   "repository": {
     "type": "git",
