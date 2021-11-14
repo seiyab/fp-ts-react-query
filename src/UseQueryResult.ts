@@ -10,19 +10,21 @@ import { Applicative1 } from "fp-ts/lib/Applicative";
 import { Monad1 } from "fp-ts/lib/Monad";
 import { pipe } from "fp-ts/lib/function";
 import { Chain1, bind as bind_ } from "fp-ts/lib/Chain";
+import { Eq } from "fp-ts/lib/Eq";
 
-export const of = <A>(a: A): UseQueryResult<A> => ({
-  status: "success",
+// -------------------- constructors --------------------
+
+const template = {
   isLoading: false,
-  isSuccess: true,
+  isSuccess: false,
   isError: false,
   isIdle: false,
-  data: a,
+  data: undefined,
   dataUpdatedAt: 0,
   error: null,
   errorUpdatedAt: 0,
   failureCount: 0,
-  isFetched: true,
+  isFetched: false,
   isFetchedAfterMount: false,
   isFetching: false,
   isRefetching: false,
@@ -31,36 +33,54 @@ export const of = <A>(a: A): UseQueryResult<A> => ({
   isPreviousData: false,
   isRefetchError: false,
   isStale: false,
-  refetch: () => Promise.resolve(of(a)),
   remove: () => null,
+} as const;
+
+export const idle = <A>(): UseQueryResult<A> => ({
+  ...template,
+  status: "idle",
+  isIdle: true,
+  refetch: () => Promise.resolve(idle<A>()),
 });
 
-export const idle = <T>(): UseQueryResult<T> => ({
-  status: "idle",
-  isLoading: false,
-  isSuccess: false,
-  isError: false,
-  isIdle: true,
-  data: undefined,
-  dataUpdatedAt: 0,
-  error: null,
-  errorUpdatedAt: 0,
-  failureCount: 0,
-  isFetched: true,
-  isFetchedAfterMount: false,
-  isFetching: false,
-  isRefetching: false,
-  isLoadingError: false,
-  isPlaceholderData: false,
-  isPreviousData: false,
-  isRefetchError: false,
-  isStale: false,
-  refetch: () => Promise.resolve(idle()),
-  remove: () => null,
+export const loading = <A>(): UseQueryResult<A> => ({
+  ...template,
+  status: "loading",
+  isLoading: true,
+  refetch: () => Promise.resolve(loading<A>()),
 });
+
+export const error = <A>(): UseQueryResult<A> => ({
+  ...template,
+  status: "error",
+  isError: true,
+  isLoadingError: true,
+  refetch: () => Promise.resolve(loading<A>()),
+});
+
+export const refetchError = <A>(a: A): UseQueryResult<A> => ({
+  ...template,
+  status: "error",
+  isError: true,
+  isRefetchError: true,
+  data: a,
+  refetch: () => Promise.resolve(loading<A>()),
+});
+
+export const success = <A>(a: A): UseQueryResult<A> => ({
+  ...template,
+  status: "success",
+  isSuccess: true,
+  isFetched: true,
+  isPlaceholderData: true,
+  data: a,
+  refetch: () => Promise.resolve(success(a)),
+});
+
+export const of = success;
 
 export const fromOption = <A>(o: O.Option<A>): UseQueryResult<A> =>
-  O.isNone(o) ? idle() : of(o.value);
+  O.isNone(o) ? idle<A>() : of(o.value);
 
 // -------------------- non-pipables --------------------
 
@@ -80,6 +100,16 @@ declare module "fp-ts/lib/HKT" {
     readonly [URI]: UseQueryResult<A>;
   }
 }
+
+export const getEq = <A>(E: Eq<A>): Eq<UseQueryResult<A>> => ({
+  equals: (x, y) => {
+    if (x.isSuccess || y.isSuccess)
+      return x.isSuccess && y.isSuccess && E.equals(x.data, y.data);
+    if (x.isRefetchError || y.isRefetchError)
+      return x.isRefetchError && y.isRefetchError && E.equals(x.data, y.data);
+    return x.status === y.status;
+  },
+});
 
 export const map: <A, B>(
   f: (x: A) => B

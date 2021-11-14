@@ -1,22 +1,26 @@
 import { UseQueryResult } from "react-query";
+import { pipe } from "fp-ts/lib/function";
+import { number } from "fp-ts";
+
+import "./jest.extend";
 
 import * as UQR from "./UseQueryResult";
-import { omit } from "./testing.test";
-import { pipe } from "fp-ts/lib/function";
 
 describe("UseQueryResult", () => {
-  const omitFunc = <A>(a: UseQueryResult<A>) => omit(a, ["refetch", "remove"]);
+  const Eq = UQR.getEq(number.Eq);
   describe("Functor", () => {
     it("map success", () => {
-      expect(
-        omitFunc(UQR.Functor.map(UQR.of(10), (x: number) => x * 2))
-      ).toEqual(omitFunc(UQR.of(20)));
+      expect(UQR.Functor.map(UQR.of(10), (x: number) => x * 2)).toEq(
+        UQR.of(20),
+        Eq
+      );
     });
 
     it("map idle", () => {
-      expect(
-        omitFunc(UQR.Functor.map(UQR.idle<number>(), (x: number) => x * 2))
-      ).toEqual(omitFunc(UQR.idle()));
+      expect(UQR.Functor.map(UQR.idle<number>(), (x: number) => x * 2)).toEq(
+        UQR.idle<number>(),
+        Eq
+      );
     });
   });
 
@@ -39,7 +43,7 @@ describe("UseQueryResult", () => {
         fb: UQR.idle(),
       },
     ])("%#", ({ fab, fa, fb }) => {
-      expect(omitFunc(UQR.Apply.ap(fab, fa))).toEqual(omitFunc(fb));
+      expect(UQR.Apply.ap(fab, fa)).toEq(fb, Eq);
     });
   });
 
@@ -72,7 +76,7 @@ describe("UseQueryResult", () => {
         fb: UQR.idle(),
       },
     ])("%#", ({ fab, fa, fb }) => {
-      expect(omitFunc(UQR.Monad.chain(fa, fab))).toEqual(omitFunc(fb));
+      expect(UQR.Monad.chain(fa, fab)).toEq(fb, Eq);
     });
   });
 
@@ -85,7 +89,7 @@ describe("UseQueryResult", () => {
         UQR.map(({ a, b }) => a + b)
       );
 
-      expect(omitFunc(result)).toEqual(omitFunc(UQR.of(3)));
+      expect(result).toEq(UQR.of(3), Eq);
     });
   });
 });
