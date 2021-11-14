@@ -22,6 +22,12 @@ describe("UseQueryResult", () => {
         Eq
       );
     });
+
+    it("lift", () => {
+      const f = (x: number) => x + 5;
+      const liftedF = UQR.map(f);
+      expect(liftedF(UQR.success(10))).toEq(UQR.success(15), Eq);
+    });
   });
 
   describe("Apply", () => {
