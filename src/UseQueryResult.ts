@@ -4,8 +4,12 @@ import {
   UseQueryResult,
 } from "react-query";
 import * as O from "fp-ts/lib/Option";
-import { Functor1, bindTo as bindTo_ } from "fp-ts/lib/Functor";
-import { Apply1 } from "fp-ts/lib/Apply";
+import { Functor1, bindTo as bindTo_, flap as flap_ } from "fp-ts/lib/Functor";
+import {
+  Apply1,
+  apFirst as apFirst_,
+  apSecond as apSecond_,
+} from "fp-ts/lib/Apply";
 import { Applicative1 } from "fp-ts/lib/Applicative";
 import { Monad1 } from "fp-ts/lib/Monad";
 import { pipe } from "fp-ts/lib/function";
@@ -175,6 +179,16 @@ export const Monad: Monad1<URI> = {
   ...Applicative,
   chain: _chain,
 };
+
+// -------------------- combinators --------------------
+
+export const flap = flap_(Functor);
+
+export const apFirst = apFirst_(Apply);
+
+export const apSecond = apSecond_(Apply);
+
+export const flatten = chain(<A>(a: UseQueryResult<A>) => a);
 
 // -------------------- Do --------------------
 

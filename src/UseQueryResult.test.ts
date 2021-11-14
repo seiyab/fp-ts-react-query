@@ -84,6 +84,65 @@ describe("UseQueryResult", () => {
     ])("%#", ({ fab, fa, fb }) => {
       expect(UQR.Monad.chain(fa, fab)).toEq(fb, Eq);
     });
+
+    describe("monad law", () => {
+      type F<T> = UseQueryResult<T>;
+      const kleisli =
+        <A, B, C>(fab: (a: A) => F<B>) =>
+        (fbc: (b: B) => F<C>): ((a: A) => F<C>) => {
+          return (a: A) => UQR.chain(fbc)(fab(a));
+        };
+
+      const funcs: ((a: number) => F<number>)[] = [
+        (a) => UQR.of(a + 5),
+        (a) => UQR.of(a * 2),
+        (a) => {
+          if (a < 0) return UQR.error();
+          if (a === 0) return UQR.idle();
+          return UQR.success(a);
+        },
+        UQR.success,
+        UQR.loading,
+        UQR.idle,
+        UQR.error,
+      ];
+      const values = [-10, -5 - 3, 0, 1, 5];
+
+      describe("left identity", () => {
+        describe.each(funcs)("funcs[%#]", (f) => {
+          it.each(values)("%d", (v) => {
+            expect(kleisli(UQR.of)(f)(v)).toEq(f(v), Eq);
+          });
+        });
+      });
+
+      describe("right identity", () => {
+        describe.each(funcs)("funcs[%#]", (f) => {
+          it.each(values)("%d", (v) => {
+            expect(kleisli(f)(UQR.of)(v)).toEq(f(v), Eq);
+          });
+        });
+      });
+
+      describe("associativity", () => {
+        describe.each(funcs)("f = funcs[%#]", (f) => {
+          describe.each(funcs)("g = funcs[%#]", (g) => {
+            describe.each(funcs)("h = funcs[%#]", (h) => {
+              it.each(values)("%d", (v) => {
+                expect(
+                  kleisli(kleisli<number, number, number>(f)(g))(h)(v)
+                ).toEq(
+                  kleisli<number, number, number>(f)(
+                    kleisli<number, number, number>(g)(h)
+                  )(v),
+                  Eq
+                );
+              });
+            });
+          });
+        });
+      });
+    });
   });
 
   describe("Do", () => {
