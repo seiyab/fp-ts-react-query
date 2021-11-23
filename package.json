@@ -1,12 +1,12 @@
 {
   "name": "@seiyab/fp-ts-react-query",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "fp-ts bindings for react-query",
-  "main": "dist/index.js",
+  "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "rm -rf ./dist && tsc"
+    "build": "rm -rf ./lib && tsc"
   },
   "repository": {
     "type": "git",
@@ -15,6 +15,9 @@
   "keywords": [
     "fp-ts",
     "react-query"
+  ],
+  "files": [
+    "/lib/**/*"
   ],
   "author": "seiyab",
   "license": "MIT",

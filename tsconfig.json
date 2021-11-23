@@ -2,7 +2,7 @@
   "extends": "@tsconfig/recommended/tsconfig.json",
   "compilerOptions": {
     "declaration": true,
-    "outDir": "./dist",
+    "outDir": "./lib",
     "baseUrl": "./src"
   },
   "include": ["src"],
