@@ -3,7 +3,7 @@ import { UseQueryResult } from "react-query";
 
 import "./jest.extend";
 
-import * as UQR from "./UseQueryResult";
+import * as UQR from "./lib/UseQueryResult";
 
 describe("toEq", () => {
   type TestCase<A> = [UseQueryResult<A>, UseQueryResult<A>];

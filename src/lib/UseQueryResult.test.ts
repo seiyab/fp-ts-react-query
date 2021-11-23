@@ -2,7 +2,7 @@ import { UseQueryResult } from "react-query";
 import { pipe } from "fp-ts/lib/function";
 import { number } from "fp-ts";
 
-import "./jest.extend";
+import "../jest.extend";
 
 import * as UQR from "./UseQueryResult";
 

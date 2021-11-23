@@ -47,7 +47,7 @@ const Component: React.FC = () => {
 };
 ```
 
-raw1 | raw2 | calculated
+x | y | calculated
 :- | :- | :-
 success | success | success(x.data * 5 + y.data)
 idle | success | idle
