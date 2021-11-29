@@ -32,7 +32,7 @@ error | error
 ### compose two query results
 ```ts
 import { pipe } from "fp-ts/lib/function";
-import * as UQR from 'fp-ts-react-query/UseQueryResult';
+import * as UQR from 'fp-ts-react-query/lib/UseQueryResult';
 
 const Component: React.FC = () => {
   const x: UseQueryResult<number> = useQuery('query1', () => someQuery1());
@@ -59,7 +59,7 @@ success | idle | idle
 ### compose many query results
 ```ts
 import { pipe } from "fp-ts/lib/function";
-import * as UQR from 'fp-ts-react-query/UseQueryResult';
+import * as UQR from 'fp-ts-react-query/lib/UseQueryResult';
 
 const Component: React.FC = () => {
   const w = useQuery('query1', () => someQuery1());
@@ -82,7 +82,7 @@ const Component: React.FC = () => {
 
 ### Deal success result as idle / loading / error according to data
 ```ts
-import * as UQR from 'fp-ts-react-query/UseQueryResult';
+import * as UQR from 'fp-ts-react-query/lib/UseQueryResult';
 
 const f = (a: number): UseQueryResult<number> => {
   if (a < 0) return UQR.error();

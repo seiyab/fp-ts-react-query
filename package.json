@@ -1,6 +1,6 @@
 {
-  "name": "@seiyab/fp-ts-react-query",
-  "version": "0.0.2",
+  "name": "fp-ts-react-query",
+  "version": "0.1.0",
   "description": "fp-ts bindings for react-query",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
